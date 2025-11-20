@@ -38,7 +38,8 @@ def callback():
         "client_key": CLIENT_KEY,
         "client_secret": CLIENT_SECRET,
         "code": code,
-        "grant_type": "authorization_code"
+        "grant_type": "authorization_code",
+        "redirect_uri": REDIRECT_URI
     }
 
     # ==== Exchange code for access token ====
