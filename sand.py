@@ -1,6 +1,7 @@
 import os
 import requests
 from flask import Flask, request
+from urllib.parse import unquote  # <-- to clean the code
 
 # ==== Load sensitive info from environment variables ====
 CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY", "sbaw5dvl7pvqygcgj4")
@@ -28,11 +29,14 @@ def exchange_token_with_retry(payload, retries=2):
 
 @app.route("/callback")
 def callback():
-    code = request.args.get("code")
-    if not code:
+    raw_code = request.args.get("code")
+    if not raw_code:
         error = request.args.get("error")
         err_desc = request.args.get("error_description")
         return f"❌ Error: {error}, Description: {err_desc}"
+
+    # ==== Clean the code to remove extra characters or URL encoding ====
+    code = unquote(raw_code.split("*")[0])  # take only part before any '*' character
 
     payload = {
         "client_key": CLIENT_KEY,
