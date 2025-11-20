@@ -14,14 +14,12 @@ app = Flask(__name__)
 @app.route("/callback")
 def callback():
     code = request.args.get("code")
-    state = request.args.get("state")
-
     if not code:
         error = request.args.get("error")
         err_desc = request.args.get("error_description")
         return f"Error: {error}, {err_desc}"
 
-    # ==== Step 1: Exchange code for access token ====
+    # Exchange code for access token
     token_url = "https://open-api.tiktok.com/oauth/access_token/"
     payload = {
         "client_key": CLIENT_KEY,
@@ -31,15 +29,15 @@ def callback():
     }
     response = requests.post(token_url, data=payload)
     data = response.json()
+    print("TikTok token response:", data)  # <-- debug log
 
     if "data" in data:
         access_token = data["data"]["access_token"]
         open_id = data["data"]["open_id"]
 
-        # ==== Step 2: Fetch user info ====
+        # Fetch user info
         user_info_url = f"https://open-api.tiktok.com/user/info/?access_token={access_token}&open_id={open_id}"
         user_response = requests.get(user_info_url).json()
-
         return (
             f"✅ Authorization successful!<br>"
             f"Access Token: {access_token}<br>"
@@ -48,6 +46,7 @@ def callback():
         )
     else:
         return f"❌ Error exchanging code for token: {data}"
+
 
 @app.route("/")
 def home():
