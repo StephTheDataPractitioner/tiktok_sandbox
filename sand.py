@@ -15,7 +15,8 @@ app = Flask(__name__)
 
 # ==== Token exchange helper with retries ====
 def exchange_token(payload, retries=2):
-    token_url = "https://open-api.tiktok.com/oauth/access_token/"
+    token_url = "https://open.tiktokapis.com/v2/oauth/token/"
+    #token_url = "https://open-api.tiktok.com/oauth/access_token/"
     last_response = None
     for attempt in range(1, retries + 1):
         print(f"[Attempt {attempt}] Exchanging code for token: {payload}")
