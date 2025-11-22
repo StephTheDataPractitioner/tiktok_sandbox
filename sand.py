@@ -1,6 +1,7 @@
 import os
 import requests
-from flask import Flask, request, redirect, jsonify
+from flask import Flask, request, redirect, jsonify, send_from_directory
+
 
 # ==== Load sensitive info from environment variables ====
 CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY", "sbaw5dvl7pvqygcgj4")
@@ -27,6 +28,21 @@ def exchange_token(payload, retries=2):
         except Exception as e:
             print(f"[Attempt {attempt}] Exception: {e}")
     return last_response
+
+
+""" @app.route('/tiktokZgZvDQrGbnhB5pV5nzu9S4DOlwtlI4bV.txt')
+def serve_tiktok_verification():
+    return send_from_directory(
+        os.path.dirname(os.path.abspath(__file__)),
+        'tiktokZgZvDQrGbnhB5pV5nzu9S4DOlwtlI4bV.txt',
+        mimetype='text/plain'
+    )
+"""
+
+@app.route('/.well-known/<filename>')
+def serve_well_known(filename):
+    well_known_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.well-known')
+    return send_from_directory(well_known_path, filename, mimetype='text/plain')
 
 @app.route("/callback")
 def callback():
