@@ -30,20 +30,20 @@ def exchange_token(payload, retries=2):
     return last_response
 
 
-""" @app.route('/tiktokZgZvDQrGbnhB5pV5nzu9S4DOlwtlI4bV.txt')
+@app.route('/tiktokZgZvDQrGbnhB5pV5nzu9S4DOlwtlI4bV.txt')
 def serve_tiktok_verification():
     return send_from_directory(
         os.path.dirname(os.path.abspath(__file__)),
         'tiktokZgZvDQrGbnhB5pV5nzu9S4DOlwtlI4bV.txt',
         mimetype='text/plain'
     )
-"""
 
-@app.route('/.well-known/<filename>')
+
+"""@app.route('/.well-known/<filename>')
 def serve_well_known(filename):
     well_known_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.well-known')
     return send_from_directory(well_known_path, filename, mimetype='text/plain')
-
+"""
 @app.route("/callback")
 def callback():
     # ---- TikTok automatically redirects here with code ----
