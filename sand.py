@@ -1,8 +1,7 @@
 import os
 import time
 import requests
-from flask import Flask, request, redirect, jsonify, send_from_directory
-
+from flask import Flask, request, redirect, jsonify, send_from_directory, render_template_string, url_for
 
 # ==== Load sensitive info from environment variables ====
 CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY", "sbaw5dvl7pvqygcgj4")
@@ -16,7 +15,6 @@ app = Flask(__name__)
 # ==== Token exchange helper with retries ====
 def exchange_token(payload, retries=2):
     token_url = "https://open.tiktokapis.com/v2/oauth/token/"
-    #token_url = "https://open-api.tiktok.com/oauth/access_token/"
     last_response = None
     for attempt in range(1, retries + 1):
         print(f"[Attempt {attempt}] Exchanging code for token: {payload}")
@@ -40,23 +38,53 @@ def serve_tiktok_verification():
         mimetype='text/plain'
     )
 
+# ==== Mock user data for demo ====
+MOCK_USER_DATA = {
+    "nickname": "DemoUser",
+    "open_id": "1234567890",
+    "follower_count": 120,
+    "following_count": 45,
+    "video_count": 10,
+    "videos": [
+        {"id": "v1", "title": "Sample Video 1"},
+        {"id": "v2", "title": "Sample Video 2"},
+    ]
+}
 
-"""@app.route('/.well-known/<filename>')
-def serve_well_known(filename):
-    well_known_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.well-known')
-    return send_from_directory(well_known_path, filename, mimetype='text/plain')
-"""
-"""
+@app.route("/auth_demo")
+def auth_demo():
+    auth_code_snippet = "****ABCD1234****"
+    return render_template_string("""
+    <h2>Auth Code & Token Exchange Demo</h2>
+    <p>Auth-code & client_key exchange attempted</p>
+    <p>Snippet: {{ snippet }}</p>
+    <p><strong>Result:</strong> ❌ Token request failed (sandbox limitation)</p>
+    """, snippet=auth_code_snippet)
+
+@app.route("/mock_user")
+def mock_user():
+    return render_template_string("""
+    <h2>Mock User Data Demo</h2>
+    <p>Nickname: {{ data.nickname }}</p>
+    <p>Open ID: {{ data.open_id }}</p>
+    <p>Followers: {{ data.follower_count }}</p>
+    <p>Following: {{ data.following_count }}</p>
+    <p>Videos:</p>
+    <ul>
+    {% for video in data.videos %}
+        <li>{{ video.title }} (ID: {{ video.id }})</li>
+    {% endfor %}
+    </ul>
+    """, data=MOCK_USER_DATA)
+
 @app.route("/callback")
 def callback():
-    # ---- TikTok automatically redirects here with code ----
     code = request.args.get("code")
     if not code:
         error = request.args.get("error")
         desc = request.args.get("error_description")
         return f"❌ Error: {error}, Description: {desc}"
 
-    # ---- Clean the code (remove extra chars from URL encoding) ----
     code = code.split('*')[0] if '*' in code else code
 
     payload = {
@@ -67,121 +95,46 @@ def callback():
         "redirect_uri": REDIRECT_URI
     }
 
-    # ---- Exchange code for access token ----
     data = exchange_token(payload)
 
-    # ---- Handle success or error ----
-    if "data" in data and "access_token" in data["data"]:
-        access_token = data["data"]["access_token"]
-        open_id = data["data"]["open_id"]
+    # If sandbox fails, redirect to auth_demo for recording
+    if not data or "data" not in data or "access_token" not in data["data"]:
+        return redirect(url_for('auth_demo'))
 
-        # Fetch user info immediately
-        try:
-            user_info = requests.get(
-                f"https://open-api.tiktok.com/user/info/?access_token={access_token}&open_id={open_id}",
-                timeout=10
-            ).json()
-        except Exception as e:
-            user_info = {"error": str(e)}
+    access_token = data["data"]["access_token"]
+    open_id = data["data"]["open_id"]
 
-        return (
-            f"✅ Authorization successful!<br>"
-            f"Access Token: {access_token}<br>"
-            f"Open ID: {open_id}<br>"
-            f"User Info: {user_info}"
-        )
-    else:
-        error_code = data.get("data", {}).get("error_code")
-        description = data.get("data", {}).get("description")
-        return (
-            f"❌ Token exchange failed.<br>"
-            f"Error Code: {error_code}<br>"
-            f"Description: {description}<br>"
-            f"Full Response: {data}"
-        )
-"""
-  # <- new import
+    try:
+        user_info = requests.get(
+            f"https://open-api.tiktok.com/user/info/?access_token={access_token}&open_id={open_id}",
+            timeout=10
+        ).json()
+    except Exception as e:
+        user_info = {"error": str(e)}
 
-@app.route("/callback")
-def callback():
-    # ---- Record the time when callback is hit ----
-    callback_received_at = time.time()
-
-    # ---- TikTok automatically redirects here with code ----
-    code = request.args.get("code")
-    if not code:
-        error = request.args.get("error")
-        desc = request.args.get("error_description")
-        return f"❌ Error: {error}, Description: {desc}"
-
-    # ---- Clean the code (remove extra chars from URL encoding) ----
-    code = code.split('*')[0] if '*' in code else code
-
-    # ---- Record the time just before exchanging token ----
-    token_request_start = time.time()
-
-    payload = {
-        "client_key": CLIENT_KEY,
-        "client_secret": CLIENT_SECRET,
-        "code": code,
-        "grant_type": "authorization_code",
-        "redirect_uri": REDIRECT_URI
-    }
-
-    # ---- Exchange code for access token ----
-    data = exchange_token(payload)
-
-    token_request_end = time.time()
-
-    # ---- Debug timing info ----
-    print(f"[Timing] Callback received at: {callback_received_at}")
-    print(f"[Timing] Token request started at: {token_request_start}")
-    print(f"[Timing] Token request ended at: {token_request_end}")
-    print(f"[Timing] Total time from callback to token exchange: {token_request_end - callback_received_at:.3f} seconds")
-
-    # ---- Handle success or error ----
-    if "data" in data and "access_token" in data["data"]:
-        access_token = data["data"]["access_token"]
-        open_id = data["data"]["open_id"]
-
-        # Fetch user info immediately
-        try:
-            user_info = requests.get(
-                f"https://open-api.tiktok.com/user/info/?access_token={access_token}&open_id={open_id}",
-                timeout=10
-            ).json()
-        except Exception as e:
-            user_info = {"error": str(e)}
-
-        return (
-            f"✅ Authorization successful!<br>"
-            f"Access Token: {access_token}<br>"
-            f"Open ID: {open_id}<br>"
-            f"User Info: {user_info}"
-        )
-    else:
-        error_code = data.get("data", {}).get("error_code")
-        description = data.get("data", {}).get("description")
-        return (
-            f"❌ Token exchange failed.<br>"
-            f"Error Code: {error_code}<br>"
-            f"Description: {description}<br>"
-            f"Full Response: {data}"
-        )
-
+    return jsonify({
+        "access_token": access_token,
+        "open_id": open_id,
+        "user_info": user_info
+    })
 
 @app.route("/")
 def home():
-    # ---- Generate login URL ----
     login_url = (
         f"https://www.tiktok.com/v2/auth/authorize?"
         f"client_key={CLIENT_KEY}&response_type=code&scope={SCOPES}"
         f"&redirect_uri={REDIRECT_URI}&state={STATE}"
     )
-    return f'<a href="{login_url}" target="_blank">Login with TikTok Sandbox</a>'
+    return render_template_string("""
+    <h1>TikTok Sandbox Demo</h1>
+    <ul>
+        <li><a href="{{ login_url }}" target="_blank">Login with TikTok Sandbox</a></li>
+        <li><a href="/auth_demo" target="_blank">Auth & Token Attempt Demo</a></li>
+        <li><a href="/mock_user" target="_blank">Mock User Data Demo</a></li>
+    </ul>
+    """, login_url=login_url)
 
 if __name__ == "__main__":
-    # Debug info
     print("CLIENT_KEY:", CLIENT_KEY)
     print("CLIENT_SECRET loaded:", bool(CLIENT_SECRET))
     print("REDIRECT_URI:", REDIRECT_URI)
