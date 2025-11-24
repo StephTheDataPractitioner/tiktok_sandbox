@@ -34,7 +34,7 @@ def exchange_token(payload, retries=2):
 def serve_tiktok_verification():
     return send_from_directory(
         os.path.dirname(os.path.abspath(__file__)),
-        '/tiktokJMnARFsL2hlLWqJIfHquUlhxZnMn7jdt.txt',
+        'tiktokJMnARFsL2hlLWqJIfHquUlhxZnMn7jdt.txt',
         mimetype='text/plain'
     )
 
