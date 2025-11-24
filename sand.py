@@ -1,7 +1,7 @@
 import os
 import time
 import requests
-from flask import Flask, request, render_template_string
+from flask import Flask, request, redirect, jsonify, send_from_directory, render_template_string
 
 # ==== Load sensitive info from environment variables ====
 CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY", "sbaw5dvl7pvqygcgj4")
@@ -11,6 +11,32 @@ SCOPES = "user.info.basic,user.info.profile,user.info.stats,video.list"
 STATE = "xyz123"
 
 app = Flask(__name__)
+
+# ==== Token exchange helper with retries ====
+def exchange_token(payload, retries=2):
+    token_url = "https://open.tiktokapis.com/v2/oauth/token/"
+    last_response = None
+    for attempt in range(1, retries + 1):
+        print(f"[Attempt {attempt}] Exchanging code for token: {payload}")
+        try:
+            response = requests.post(token_url, data=payload, timeout=10)
+            data = response.json()
+            print(f"[Attempt {attempt}] TikTok response: {data}")
+            last_response = data
+            if "data" in data and "access_token" in data["data"]:
+                return data
+        except Exception as e:
+            print(f"[Attempt {attempt}] Exception: {e}")
+    return last_response
+
+
+@app.route('/tiktokZgZvDQrGbnhB5pV5nzu9S4DOlwtlI4bV.txt')
+def serve_tiktok_verification():
+    return send_from_directory(
+        os.path.dirname(os.path.abspath(__file__)),
+        'tiktokZgZvDQrGbnhB5pV5nzu9S4DOlwtlI4bV.txt',
+        mimetype='text/plain'
+    )
 
 # ==== Mock user data for demo ====
 MOCK_USER_DATA = {
@@ -43,22 +69,21 @@ def mock_user():
 
 @app.route("/callback")
 def callback():
-    # ---- Get real auth code from TikTok redirect ----
     code = request.args.get("code")
     if not code:
         error = request.args.get("error")
         desc = request.args.get("error_description")
         return f"❌ Error: {error}, Description: {desc}"
 
-    # ---- Prepare snippet: first 9 characters ----
-    snippet = code[:9] + "****"
+    code_clean = code.split('*')[0] if '*' in code else code
+    snippet = code_clean[:9] + "****"  # First 9 chars + masked
 
-    # ---- Display demo-style info ----
+    # Friendly demo page for video recording
     return render_template_string("""
     <h2>Auth Code & Token Exchange Demo</h2>
     <p>Auth-code & client_key exchange attempted</p>
-    <p>Snippet: {{ snippet }}</p>
-    <p><strong>Result:</strong> ✅ Exchange attempted (sandbox demo)</p>
+    <p>Snippet of Auth Code: {{ snippet }}</p>
+    <p><strong>Result:</strong> Auth code exchange simulated for demo</p>
     """, snippet=snippet)
 
 @app.route("/")
