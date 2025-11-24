@@ -6,13 +6,13 @@ from flask import Flask, request, redirect, jsonify, send_from_directory, render
 # ==== Load sensitive info from environment variables ====
 CLIENT_KEY = os.getenv("TIKTOK_CLIENT_KEY", "sbaw5dvl7pvqygcgj4")
 CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
-REDIRECT_URI = os.getenv("TIKTOK_REDIRECT_URI")  # e.g., https://tiktok-sandbox.onrender.com/callback
+REDIRECT_URI = os.getenv("TIKTOK_REDIRECT_URI")
 SCOPES = "user.info.basic,user.info.profile,user.info.stats,video.list"
 STATE = "xyz123"
 
 app = Flask(__name__)
 
-# ==== Token exchange helper with retries ====
+# ==== Token exchange helper (not used, but kept) ====
 def exchange_token(payload, retries=2):
     token_url = "https://open.tiktokapis.com/v2/oauth/token/"
     last_response = None
@@ -38,7 +38,7 @@ def serve_tiktok_verification():
         mimetype='text/plain'
     )
 
-# ==== Navigation bar snippet ====
+# ==== Navigation bar ====
 base_nav = """
 <nav style="background:#f2f2f2;padding:10px;margin-bottom:20px;">
     <a href="/" style="margin-right:15px;">Home</a>
@@ -46,7 +46,7 @@ base_nav = """
 </nav>
 """
 
-# ==== Mock user data for demo ====
+# ==== Mock data for demo ====
 MOCK_USER_DATA = {
     "nickname": "DemoUser",
     "open_id": "1234567890",
@@ -61,8 +61,8 @@ MOCK_USER_DATA = {
 
 @app.route("/mock_user")
 def mock_user():
-    return render_template_string(f"""
-    {base_nav}
+    template = """
+    {{ nav|safe }}
     <h2>Mock User Data Demo</h2>
     <p>Nickname: {{ data.nickname }}</p>
     <p>Open ID: {{ data.open_id }}</p>
@@ -74,7 +74,9 @@ def mock_user():
         <li>{{ video.title }} (ID: {{ video.id }})</li>
     {% endfor %}
     </ul>
-    """, data=MOCK_USER_DATA)
+    """
+    return render_template_string(template, data=MOCK_USER_DATA, nav=base_nav)
+
 
 @app.route("/callback")
 def callback():
@@ -85,15 +87,18 @@ def callback():
         return f"❌ Error: {error}, Description: {desc}"
 
     code_clean = code.split('*')[0] if '*' in code else code
-    snippet = code_clean[:9] + "****"  # First 9 chars + masked
+    snippet = code_clean[:9] + "****"
 
-    return render_template_string(f"""
-    {base_nav}
+    template = """
+    {{ nav|safe }}
     <h2>Auth Code & Token Exchange Demo</h2>
     <p>Auth-code & client_key exchange attempted</p>
     <p>Snippet of Auth Code: {{ snippet }}</p>
     <p><strong>Result:</strong> Auth code exchange simulated for demo</p>
-    """, snippet=snippet)
+    """
+
+    return render_template_string(template, snippet=snippet, nav=base_nav)
+
 
 @app.route("/")
 def home():
@@ -102,14 +107,18 @@ def home():
         f"client_key={CLIENT_KEY}&response_type=code&scope={SCOPES}"
         f"&redirect_uri={REDIRECT_URI}&state={STATE}"
     )
-    return render_template_string(f"""
-    {base_nav}
+
+    template = """
+    {{ nav|safe }}
     <h1>TikTok Sandbox Demo</h1>
     <ul>
         <li><a href="{{ login_url }}" target="_blank">Login with TikTok Sandbox</a></li>
         <li><a href="/mock_user" target="_blank">Mock User Data Demo</a></li>
     </ul>
-    """, login_url=login_url)
+    """
+
+    return render_template_string(template, login_url=login_url, nav=base_nav)
+
 
 if __name__ == "__main__":
     print("CLIENT_KEY:", CLIENT_KEY)
