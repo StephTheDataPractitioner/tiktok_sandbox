@@ -30,11 +30,11 @@ def exchange_token(payload, retries=2):
     return last_response
 
 
-@app.route('/tiktokJMnARFsL2hlLWqJIfHquUlhxZnMn7jdt.txt')
+@app.route('/tiktokPLQEpgkscABXMI8pSF7zPfbg7Tdet6jA.txt')
 def serve_tiktok_verification():
     return send_from_directory(
         os.path.dirname(os.path.abspath(__file__)),
-        'tiktokJMnARFsL2hlLWqJIfHquUlhxZnMn7jdt.txt',
+        'tiktokPLQEpgkscABXMI8pSF7zPfbg7Tdet6jA.txt',
         mimetype='text/plain'
     )
 
