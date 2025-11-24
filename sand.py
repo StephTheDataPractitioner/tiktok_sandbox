@@ -48,8 +48,7 @@ base_nav = """
 
 # ==== Mock data for demo ====
 MOCK_USER_DATA = {
-    "nickname": "DemoUser",
-    "open_id": "1234567890",
+    "nickname": "attamah57",
     "follower_count": 120,
     "following_count": 45,
     "video_count": 10,
