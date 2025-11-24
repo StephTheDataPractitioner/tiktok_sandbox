@@ -9,8 +9,8 @@ from flask import Flask, request, redirect, jsonify, send_from_directory, sessio
 
 
 # ==== Load sensitive info from environment variables ====
-CLIENT_KEY = "sbaw28itjfgqnjkukg"
-CLIENT_SECRET = "lNF8wihOAqiCtu6MoOQ7243wXIq2tUkb"
+CLIENT_KEY = ""
+CLIENT_SECRET = ""
 # CLIENT_SECRET = os.getenv("TIKTOK_CLIENT_SECRET")
 REDIRECT_URI = "http://localhost:5002/callback"
 SCOPES = "user.info.basic user.info.profile user.info.stats video.list"
