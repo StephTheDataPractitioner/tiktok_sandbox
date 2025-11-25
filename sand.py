@@ -38,6 +38,14 @@ def serve_tiktok_verification():
         mimetype='text/plain'
     )
 
+@app.route('/terms/tiktokgF9Jijsvy93SV4A1QOGUEHDUSsUN4vg0.txt')
+def serve_terms_verification():
+    return send_from_directory(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), 'terms'),
+        'tiktokgF9Jijsvy93SV4A1QOGUEHDUSsUN4vg0.txt',
+        mimetype='text/plain'
+    )
+
 
 @app.route("/terms")
 def terms():
