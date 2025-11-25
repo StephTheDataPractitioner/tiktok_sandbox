@@ -38,13 +38,19 @@ def serve_tiktok_verification():
         mimetype='text/plain'
     )
 
+# TikTok must see the folder prefix
+@app.route('/terms/')
+def terms_index():
+    return "Terms folder check OK"
+
 @app.route('/terms/tiktokgF9Jijsvy93SV4A1QOGUEHDUSsUN4vg0.txt')
 def serve_terms_verification():
     return send_from_directory(
-        os.path.dirname(os.path.abspath(__file__)),  # project root
+        os.path.dirname(os.path.abspath(__file__)),
         'tiktokgF9Jijsvy93SV4A1QOGUEHDUSsUN4vg0.txt',
         mimetype='text/plain'
     )
+
 
 
 @app.route("/terms")
