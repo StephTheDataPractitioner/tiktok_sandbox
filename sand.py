@@ -38,25 +38,69 @@ def serve_tiktok_verification():
         mimetype='text/plain'
     )
 
+
+@app.route("/terms")
+def terms():
+    return """
+    <h1>Terms of Service</h1>
+    <p>Welcome to the Trial Application ("App"). By using this App, you agree to the following terms:</p>
+    <ul>
+        <li>You may use the App for testing and demonstration purposes only.</li>
+        <li>The App does not guarantee accuracy of data or uninterrupted service.</li>
+        <li>You are responsible for keeping your account credentials secure.</li>
+        <li>The App collects data only for the purpose of demonstrating TikTok API integration.</li>
+        <li>We reserve the right to modify these Terms of Service at any time.</li>
+    </ul>
+    <p>By using this App, you acknowledge that you have read and agree to these terms.</p>
+    """
+
+@app.route("/policy")
+def policy():
+    return """
+    <h1>Privacy Policy</h1>
+    <p>This Privacy Policy explains how Trial Application ("App") collects, uses, and protects your data:</p>
+    <ul>
+        <li>We only collect information necessary to demonstrate TikTok API functionality, such as username, profile info, and video stats.</li>
+        <li>We do not sell, share, or rent your personal data to third parties.</li>
+        <li>Data collected is stored securely and used solely for testing purposes.</li>
+        <li>Access to your data is limited to authorized personnel for app demonstration and debugging.</li>
+        <li>We may update this Privacy Policy from time to time. Updates will be reflected on this page.</li>
+    </ul>
+    <p>By using this App, you consent to the collection and use of information in accordance with this policy.</p>
+    """
+
 # ==== Navigation bar ====
 base_nav = """
 <nav style="background:#f2f2f2;padding:10px;margin-bottom:20px;">
     <a href="/" style="margin-right:15px;">Home</a>
-    <a href="/mock_user">Mock User Data Demo</a>
+    <a href="/mock_user" style="margin-right:15px;">Mock User Data Demo</a>
+    <a href="/terms" style="margin-right:15px;">Terms of Service</a>
+    <a href="/policy">Privacy Policy</a>
 </nav>
 """
 
+
 # ==== Mock data for demo ====
 MOCK_USER_DATA = {
+    "open_id": "mock-open-id-123",
     "nickname": "attamah57",
+    "avatar_url": "https://example.com/mock-avatar.jpg",
+    "profile_web_link": "https://www.tiktok.com/@attamah57",
+    "profile_deep_link": "tiktok://user/@attamah57",
+    "bio_description": "Just a sandbox demo account",
+    "is_verified": False,
     "follower_count": 120,
     "following_count": 45,
+    "likes_count": 350,
     "video_count": 10,
     "videos": [
-        {"id": "v1", "title": "Sample Video 1"},
-        {"id": "v2", "title": "Sample Video 2"},
+        {"id": "v1", "title": "Sample Video 1", "views": 150, "likes": 10},
+        {"id": "v2", "title": "Sample Video 2", "views": 200, "likes": 20},
+        {"id": "v3", "title": "Sample Video 3", "views": 75, "likes": 5},
+        # Add more mock videos as needed
     ]
 }
+
 
 @app.route("/mock_user")
 def mock_user():
